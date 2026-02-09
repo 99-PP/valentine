@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Oi amor queres ser o meu valentine? 💘</title>
+  <style>
+    :root{
+      --bg1:#fff0f6;
+      --bg2:#ffe6f0;
+      --accent:#ff4d88;
+      --accent-2:#ff6aa6;
+      --muted:#777;
+      --card:#ffffffcc;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+      background: radial-gradient(circle at 10% 10%, #fff6fb 0%, var(--bg1) 25%, var(--bg2) 100%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:32px;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .card{
+      width:100%;
+      max-width:720px;
+      background:var(--card);
+      border-radius:20px;
+      padding:36px 28px;
+      text-align:center;
+      box-shadow:0 10px 30px rgba(0,0,0,0.08);
+      position:relative;
+      overflow:hidden;
+    }
+
+    h1{font-size:2.2rem;margin:0 0 10px;color:#3a0022}
+    p.lead{margin:0 0 24px;color:var(--muted)}
+
+    .buttons{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+
+    button{
+      cursor:pointer;
+      border:0;
+      padding:14px 28px;
+      border-radius:12px;
+      font-size:1.05rem;
+      font-weight:600;
+      transition:transform .18s ease, box-shadow .18s ease;
+      box-shadow:0 6px 20px rgba(0,0,0,0.08);
+      min-width:140px;
+    }
+
+    #yesBtn{
+      background:linear-gradient(180deg,var(--accent),var(--accent-2));
+      color:white;
+      transform-origin:center;
+    }
+
+    #yesBtn:hover{transform:translateY(-4px) scale(1.02)}
+
+    @keyframes pulse {
+      0%{transform:scale(1)}
+      50%{transform:scale(1.06)}
+      100%{transform:scale(1)}
+    }
+    .pulse{animation:pulse 1.6s infinite ease-in-out}
+
+    #noBtn{
+      background:#9aa0a8;color:white;min-width:120px;
+    }
+
+    /* floating hearts */
+    .heart{
+      position:absolute;pointer-events:none;will-change:transform,opacity;
+      font-size:18px;opacity:.95;transform:translateY(0);
+      animation:floatUp 2.8s linear forwards;
+    }
+    @keyframes floatUp{
+      to{transform:translateY(-220px) scale(.6);opacity:0}
+    }
+
+    /* responsive */
+    @media (max-width:480px){
+      h1{font-size:1.6rem}
+      .card{padding:24px}
+      button{width:48%;min-width:0}
+    }
+
+    /* respects reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .pulse, .heart{animation:none}
+    }
+  </style>
+</head>
+<body>
+
+  <main class="card" role="main" aria-labelledby="heading">
+    <h1 id="heading">Oi amor queres ser o meu valentine? 💖</h1>
+    <p class="lead">por favorzinho 😉</p>
+
+    <div class="buttons">
+      <button id="yesBtn" class="pulse" aria-labelledby="heading">Sim 😍</button>
+      <button id="noBtn" aria-label="Não, obrigado">Não 😢</button>
+    </div>
+
+    <div id="live" aria-live="polite" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden"></div>
+  </main>
+
+  <script>
+    const yesBtn = document.getElementById('yesBtn');
+    const noBtn = document.getElementById('noBtn');
+    const main = document.querySelector('.card');
+    const live = document.getElementById('live');
+
+    // Utility: create small floating heart
+    function createHeart(x, y, color='#ff4d88'){
+      const el = document.createElement('div');
+      el.className = 'heart';
+      el.textContent = '💘';
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      el.style.color = color;
+      main.appendChild(el);
+      setTimeout(()=>el.remove(), 2800);
+    }
+
+    // Move the "No" button to a random nearby position on hover/click
+    let clickCount = 0;
+    const maxClicks = 20;
+    let scale = 1;
+    
+    function moveNoButton(){
+      if(clickCount >= maxClicks) return;
+      clickCount++;
+      
+      // Move to random position
+      const rect = main.getBoundingClientRect();
+      const btn = noBtn.getBoundingClientRect();
+      const padding = 12;
+      const maxX = rect.width - btn.width - padding;
+      const maxY = rect.height - btn.height - padding;
+      const x = Math.max(padding, Math.random() * maxX);
+      const y = Math.max(padding, Math.random() * maxY);
+      noBtn.style.position = 'absolute';
+      noBtn.style.left = x + 'px';
+      noBtn.style.top = y + 'px';
+    }
+
+    // Respect reduced-motion preferences
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if(!reduceMotion){
+      noBtn.addEventListener('mouseenter', moveNoButton);
+      noBtn.addEventListener('click', moveNoButton);
+    }
+
+    // No button click: show message and shrink after 20 clicks
+    noBtn.addEventListener('click', ()=>{
+      live.textContent = 'por favorzinho, anda lá';
+      
+      if(clickCount >= maxClicks){
+        scale *= 0.8;
+        noBtn.style.transform = `scale(${scale})`;
+        noBtn.style.opacity = scale;
+        
+        if(scale < 0.05){
+          noBtn.style.display = 'none';
+        }
+      }
+    });
+    ;
+
+    // Yes behavior: celebrate
+    function celebrate(){
+      // announce for screen readers
+      live.textContent = 'Respondeste Sim';
+      document.body.innerHTML = '';
+      const wrap = document.createElement('div');
+      wrap.style.minHeight = '100vh';
+      wrap.style.display = 'flex';
+      wrap.style.alignItems = 'center';
+      wrap.style.justifyContent = 'center';
+      wrap.style.flexDirection = 'column';
+      wrap.style.gap = '18px';
+      wrap.innerHTML = '<h1 style="font-size:2rem;margin:0;color:#3a0022">YEYYYYYYYYYYYYYYYYYY amo-teeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee</h1>';
+      document.body.appendChild(wrap);
+
+      // small confetti hearts
+      const W = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+      for(let i=0;i<18;i++){
+        setTimeout(()=>{
+          const x = Math.random() * W;
+          const y = window.innerHeight - 40;
+          createHeart(x,y, i%2? '#ff4d88' : '#ff9fc2');
+        }, i*80);
+      }
+    }
+
+    yesBtn.addEventListener('click', celebrate);
+
+    // keyboard accessibility
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter'){
+        const active = document.activeElement;
+        if(active === noBtn){ moveNoButton(); }
+        else { celebrate(); }
+      }
+      if(e.key === 'Tab'){
+        // ensure focus ring visible (default browser behavior)
+      }
+    });
+
+    // initial focus
+    yesBtn.focus();
+  </script>
+</body>
+</html>
